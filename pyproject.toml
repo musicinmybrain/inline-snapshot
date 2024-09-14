@@ -39,6 +39,11 @@ name = "inline-snapshot"
 readme = "README.md"
 requires-python = ">=3.8"
 version = "0.13.0"
+[project.optional-dependencies]
+dirty-equals=[
+    # TODO: will probably be 0.8.1
+    "dirty-equals>=0.8.0"
+]
 
 [project.entry-points.pytest11]
 inline_snapshot = "inline_snapshot.pytest_plugin"
@@ -141,3 +146,8 @@ exclude = "tests/.*_samples"
 [tool.pyright]
 venv = "test-3-12"
 venvPath = ".nox"
+
+
+[tool.scriv]
+format = "md"
+version = "literal: pyproject.toml: project.version"

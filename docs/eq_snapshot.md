@@ -84,6 +84,10 @@ inline-snapshot tries to change only the values that it needs to change in order
 This allows to replace parts of the snapshot with [dirty-equals](https://dirty-equals.helpmanual.io/latest/) expressions.
 This expressions are preserved as long as the `==` comparison with them is `True`.
 
+!!! note
+    It is recommended to install `inline-snapshot[dirty-equals]` if you want to use dirty-equals.
+    This will ensure that you use the version of dirty-equals that works well with inline-snapshot.
+
 Example:
 
 === "using IsDatetime()"

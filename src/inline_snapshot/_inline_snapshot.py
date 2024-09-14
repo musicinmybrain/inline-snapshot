@@ -252,8 +252,57 @@ class EqValue(GenericValue):
         if self._old_value is undefined:
             _missing_values += 1
 
+        def use_valid_old_values(old_value, new_value):
+
+            if isinstance(new_value, dirty_equals.DirtyEquals):
+                assert False
+
+            if (
+                isinstance(new_value, list)
+                and isinstance(old_value, list)
+                or isinstance(new_value, tuple)
+                and isinstance(old_value, tuple)
+            ):
+                diff = add_x(align(old_value, new_value))
+                old = iter(old_value)
+                new = iter(new_value)
+                result = []
+                for c in diff:
+                    if c in "mx":
+                        old_value_element = next(old)
+                        new_value_element = next(new)
+                        result.append(
+                            use_valid_old_values(old_value_element, new_value_element)
+                        )
+                    elif c == "i":
+                        result.append(next(new))
+                    elif c == "d":
+                        pass
+                    else:
+                        assert False
+
+                return type(new_value)(result)
+
+            elif isinstance(new_value, dict) and isinstance(old_value, dict):
+                result = {}
+
+                for key, new_value_element in new_value.items():
+                    if key in old_value:
+                        result[key] = use_valid_old_values(
+                            old_value[key], new_value_element
+                        )
+                    else:
+                        result[key] = new_value_element
+
+                return result
+
+            if new_value == old_value:
+                return old_value
+            else:
+                return new_value
+
         if self._new_value is undefined:
-            self._new_value = clone(other)
+            self._new_value = use_valid_old_values(self._old_value, clone(other))
 
         return self._visible_value() == other
 
@@ -371,14 +420,22 @@ class EqValue(GenericValue):
                 return
 
             # generic fallback
-            new_token = value_to_token(new_value)
+
+            # because IsStr() != IsStr()
+            if type(old_value) is type(new_value) and not update_allowed(new_value):
+                return
+
+            if old_node is None:
+                new_token = []
+            else:
+                new_token = value_to_token(new_value)
 
             if not old_value == new_value:
                 flag = "fix"
             elif (
                 self._ast_node is not None
-                and self._token_of_node(old_node) != new_token
                 and update_allowed(old_value)
+                and self._token_of_node(old_node) != new_token
             ):
                 flag = "update"
             else:
